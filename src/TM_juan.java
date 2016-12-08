@@ -112,6 +112,7 @@ public class TM_juan {
         return sb.toString();
     }
     
+    
     /*
      * runs the turing machine from a given string representation of a machine
      */
@@ -198,6 +199,96 @@ public class TM_juan {
 		}
         return sb.toString();
     }
+    
+public String run_machine_from_string_track_writes(String turing_tape) {
+
+	    StringBuilder chain_tracker = new StringBuilder();
+	    chain_tracker.append("");
+
+    	int[] cinta = new int[1024*1024];
+    	// el head original es la mitad
+    	int head = 1024*512;
+    	// run machine
+    	int min_index = head;
+    	int max_index = head;
+    	boolean halt = false;
+    	int current_state = 0;
+    	int max_iterator = 100;
+    	int iterator = 0;
+    	int chain_iterator_module = 0;
+    	while (!halt && iterator<=max_iterator){
+    		chain_iterator_module = 16*current_state;
+    		int current_value = Character.getNumericValue(
+    				turing_tape.charAt(chain_iterator_module));
+    		int future_value = Character.getNumericValue(
+    				turing_tape.charAt(chain_iterator_module+1));
+    		int left_right1 = Character.getNumericValue(
+    				turing_tape.charAt(chain_iterator_module+2));
+    		int left_right2 = Character.getNumericValue(
+    				turing_tape.charAt(chain_iterator_module+9));
+    		// integer to string suppose it goes from 
+    		StringBuilder sb1 = new StringBuilder();
+    		sb1.append("");
+    		for(int idx=3;idx<=8;idx++){
+    			char number_pos=turing_tape.charAt(chain_iterator_module+idx); 
+        		sb1.append(Integer.toString(Character.getNumericValue(number_pos)));
+    		}
+    		int future_state1 = Integer.parseInt(sb1.toString(), 2);
+    		
+    		StringBuilder sb2 = new StringBuilder();
+    		sb2.append("");
+    		for(int idx=10;idx<=15;idx++){
+    			char number_pos=turing_tape.charAt(chain_iterator_module+idx); 
+        		sb2.append(Integer.toString(Character.getNumericValue(number_pos)));
+    		}
+    		int future_state2 = Integer.parseInt(sb2.toString(), 2);
+    		
+    		if(cinta[head]==current_value){
+    		    chain_tracker.append(Integer.toString(future_value));
+    			cinta[head]=future_value;
+        		if(left_right1==0){
+        			head-=1;
+        		}else{
+        			head+=1;
+        		}
+        		if(future_state1==63){
+        			halt=true;
+        		}else{
+        			current_state=future_state1;
+        		}
+    		}
+    		else{
+    		    chain_tracker.append(Integer.toString(cinta[head]));
+        		if(left_right2==0){
+        			head-=1;
+        		}else{
+        			head+=1;
+        		}
+        		if(future_state2==63){
+        			halt=true;
+        		}else{
+        			current_state=future_state2;
+        		}
+    		}
+
+    		iterator +=1;
+    		if(head<min_index){
+    			min_index=head;
+    		}
+    		if(head>max_index){
+    			max_index=head;
+    		}
+    		
+    	}
+    	// cut cinta on the significant segment, only where head was eventually
+		StringBuilder sb = new StringBuilder();
+		sb.append("");
+		for(int ct=min_index; ct<=max_index;ct++){
+			sb.append(Integer.toString(cinta[ct]));
+		}
+        return chain_tracker.toString();
+    }
+
     
 /*
  * runs the turing machine from a string representation of a given turing machine
