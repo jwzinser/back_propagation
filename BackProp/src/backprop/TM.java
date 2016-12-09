@@ -1,5 +1,6 @@
 package backprop;
 
+import static backprop.BackProp.predict;
 import java.util.*;
 
 /*
@@ -18,17 +19,22 @@ public class TM {
     public String create_chain_from_oracle(){
         // check the size of the oracle and if is reduced or not
         // actually it is not needed to have a 
-        String turing_chain_with_oracle = "";
-        String current_state;
-        int state_index;
-        for(int i=0; i<64; i++){
-            state_index = i*16;
-            current_state = turing_chain.substring(state_index,state_index+16);
-            turing_chain_with_oracle += current_state+current_state;
+        int rand_int;
+        StringBuilder states_chain2 = new StringBuilder();
+        states_chain.append("");
+        
+        for (int i = 0; i <64; ++i){
+            for (int j = 0;j <32; ++j){
+                rand_int = randomGenerator.nextInt(2);
+                states_chain2.append(Integer.toString(rand_int));
+            }
+        }
+        
+        String turing_chain_with_oracle = states_chain2.toString();
+                return turing_chain_with_oracle;
 
         }
-        return turing_chain_with_oracle;
-    }
+    
     
     
     /*
@@ -218,13 +224,21 @@ public class TM {
         return sb.toString();
     }
         
-    public String run_machine_from_string_oracle(String turing_tape) {
+    public String run_machine_from_string_oracle(String turing_tape,double parametros[][]) {
         
         // in this case the turing_tape has double length
         // every state has 32 bits 
         int[] cinta = new int[1024*1024];
         // el head original es la mitad
         int head = 1024*512;
+        int[] last_writes = new int[1024*1024];
+        int writer_index = 0;
+        int lag = 3;
+        double[][] lag_writes = new double[1][lag+1]; // plus one since there is a "y" at the end
+        double predicted[];
+        double prediction;
+        int oracle;
+        int quadrant;
         // run machine
         int min_index = head;
         int max_index = head;
@@ -235,56 +249,81 @@ public class TM {
         int chain_iterator_module;
         while (!halt && iterator<=max_iterator){
             chain_iterator_module = 32*current_state;
-            int current_value = Character.getNumericValue(
+            // this corresponds to the first desicion factor
+            int current_value1 = Character.getNumericValue(
                     turing_tape.charAt(chain_iterator_module));
+            // this corresponds to the first desicion factor
+            int current_value2 = Character.getNumericValue(
+                turing_tape.charAt(chain_iterator_module+16));
+            // make the prediction with the oracle 
+            prediction=0;
+            if(writer_index>lag){
+                for(int ia=0; ia<lag; ia++){
+                    lag_writes[0][ia] =(double) last_writes[writer_index-lag+ia];                             
+                }
+                lag_writes[0][lag] = 0 ;
+                predicted = predict(lag_writes, parametros);
+                prediction = predicted[0];
+            }
+            if(prediction<0.5){
+                oracle = 0;
+            }else{
+                oracle = 1;
+            }
+            quadrant=0;
+            switch(oracle) {
+                case 0:
+                switch(current_value1){
+                    case 0:
+                    quadrant=0*8;
+                    break;
+                    case 1:
+                    quadrant=1*8;
+                    break;
+                };
+                case 1:
+                switch(current_value1){
+                    case 0:
+                    quadrant=2*8;
+                    break;
+                    case 1:
+                    quadrant=3*8;
+                    break;
+                };
+             }
+
+            
+            
+            
             int future_value = Character.getNumericValue(
-                    turing_tape.charAt(chain_iterator_module+1));
+                    turing_tape.charAt(chain_iterator_module+quadrant+1));
             int left_right1 = Character.getNumericValue(
-                    turing_tape.charAt(chain_iterator_module+2));
-            int left_right2 = Character.getNumericValue(
-                    turing_tape.charAt(chain_iterator_module+18));
+                    turing_tape.charAt(chain_iterator_module+quadrant+2));
+
             // integer to string suppose it goes from
             StringBuilder sb1 = new StringBuilder();
             sb1.append("");
-            for(int idx=3;idx<=8;idx++){
+            for(int idx=(quadrant+3);idx<=(quadrant+8);idx++){
                 char number_pos=turing_tape.charAt(chain_iterator_module+idx);
                 sb1.append(Integer.toString(Character.getNumericValue(number_pos)));
             }
             int future_state1 = Integer.parseInt(sb1.toString(), 2);
             
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("");
-            for(int idx=19;idx<=24;idx++){
-                char number_pos=turing_tape.charAt(chain_iterator_module+idx);
-                sb2.append(Integer.toString(Character.getNumericValue(number_pos)));
+
+            cinta[head]=future_value;
+            last_writes[writer_index] = future_value;
+            writer_index += 1;
+            if(left_right1==0){
+                head-=1;
+            }else{
+                head+=1;
             }
-            int future_state2 = Integer.parseInt(sb2.toString(), 2);
-            
-            if(cinta[head]==current_value){
-                cinta[head]=future_value;
-                if(left_right1==0){
-                    head-=1;
-                }else{
-                    head+=1;
-                }
-                if(future_state1==63){
-                    halt=true;
-                }else{
-                    current_state=future_state1;
-                }
+            if(future_state1==63){
+                halt=true;
+            }else{
+                current_state=future_state1;
             }
-            else{
-                if(left_right2==0){
-                    head-=1;
-                }else{
-                    head+=1;
-                }
-                if(future_state2==63){
-                    halt=true;
-                }else{
-                    current_state=future_state2;
-                }
-            }
+
             
             iterator +=1;
             if(head<min_index){
