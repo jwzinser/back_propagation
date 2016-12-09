@@ -27,7 +27,7 @@ public class BackProp {
         return sum;
     }
     
-    public static double[][] NNNP(double LR, int q, double[][] datos, int epochs){
+    public static double[][] backpropagation(double LR, int q, double[][] datos, int epochs){
         // In:
         //      LR = Learning Rate,
         //      q = number of nodes in hidden layer,
@@ -70,71 +70,171 @@ public class BackProp {
                 }
             }
             
+            double[] pred = new double [N];
+            
             for(int k_dat = 0; k_dat < N; k_dat++){
                 double[] a_k = new double[q];
                 double[] z_k = new double[q];
                 
-                for(int j = 0; j < q; j++){
-//                    double z_jk = 0;
+                for(int m = 0; m < q; m++){
                     for(int ix = 0; ix < p; ix++){
-                        z_k[j] += theta[j][ix]*datos[ix][k_dat];
+                        z_k[m] += theta[m][ix]*datos[k_dat][ix];
                     }
-                    a_k[j] = Math.tanh(z_k[j]);
+                    a_k[m] = Math.tanh(z_k[m]);
                 }
                 
-                double w_k = 0;
                 
-                for(int ix = 0; ix < q; ix++){
-                    w_k += beta[ix]*a_k[ix];
+//                double norma_ak = dotProduct(a_k, a_k);
+//                System.out.print("norma_ak: ");
+//                System.out.println(norma_ak);
+
+double w_k = 0;
+
+for(int ix = 0; ix < q; ix++){
+    w_k += beta[ix]*a_k[ix];
+}
+
+//                System.out.print("w_k: ");
+//                System.out.println(w_k);
+
+double p_k = Math.tanh(w_k);
+
+//                System.out.print("p_k: ");
+//                System.out.println(p_k);
+
+double norma_parciales_beta = 0;
+for(int m = 0; m < q; m++){
+    double prod = -(y[k_dat] - p_k)*(1 - w_k*w_k)*a_k[m];
+    parciales_beta[m] += prod/N;
+    norma_parciales_beta += Math.pow(parciales_beta[m], 2);
+    
+}
+
+//                System.out.print("Norma parciales beta: ");
+//                System.out.println(norma_parciales_beta);
+
+for(int m = 0; m < q; m++){
+    for(int n = 0; n < p; n++){
+        parciales_theta[m][n] += -(2/N)*(y[k_dat] - p_k)*(1 - w_k*w_k)*beta[m]*(1-z_k[m]*z_k[m])*datos[k_dat][n];
+    }
+}
+pred[k_dat] = p_k;
+
+            }
+            
+            double suma_errores = 0;
+            double norma_pred = 0;
+            for(int i = 0; i < N; i++){
+                suma_errores += Math.pow((pred[i] - y[i]), 2);
+                norma_pred += pred[i]*pred[i];
+            }
+            
+            for(int m = 0; m < q; m++){
+                beta[m] = beta[m] - LR * parciales_beta[m];
+                for(int n = 0; n < p; n++){
+                    theta[m][n] = theta[m][n] - LR * parciales_theta[m][n];
                 }
-                
-                double p_k = Math.tanh(w_k);
-                
-                //double[] parciales_beta = new double[q];
-                
-                for(int ix = 0; ix < q; ix++){
-                    parciales_beta[ix] += -(2/N)*(y[k_dat] - p_k)*(1 - w_k*w_k)*a_k[ix];
-                }
-                
-                for(int i = 0; i < q; i++){
-                    for(int j = 0; j < p; j++){
-                        parciales_theta[i][j] += -(2/N)*(y[k_dat] - p_k)*(1 - w_k*w_k)*a_k[i];
-                    }
-                }
-                
-//                for(int k = 0; k < N; k++){
-//                    double z_jk = 0;
-//
-//                    for(int ix = 0; ix < p; ix++){
-//                        z_jk = z_jk + params[j][ix];
-//                    }
-//                    double a_jk = Math.tanh(z_jk);
-//
-//                    for(int i_dat = 0; i_dat < N; i_dat++){
-//                        double w_k =2;
-//                        double y_k = datos[i_dat][p];
-//                    }
-//
-//                    double parcial_beta_lk = 2*(2);
-//                    params[p+1][j] = params[p+1][j] + LR * parcial_beta_lk;
-//                }
+            }
+            
+            System.out.print("iter: ");
+            System.out.println(iter);
+            System.out.print("suma errores al cuadrado: ");
+            System.out.println(suma_errores);
+//            System.out.print("norma pred: ");
+//            System.out.println(norma_pred);
+System.out.println();
+        }
+        
+        for(int m = 0; m < q; m++){
+            params[m][p] = beta[m];
+            for(int n = 0; n < p; n++){
+                params[m][n] = theta[m][n];
             }
         }
         
         return(params);
     }
     
-    public static void main(String[] args) {
-        // TODO code application logic here
-        // double out[][] = RandomArray(2, 3);
-        double out[][] = RandomArray(2, 3);
-        int n = out.length; // 2
-        int m = out[0].length; // 3
-        for(int i = 0; i < n; i++){
-            for(int j = 0; j < m; j++){
-                System.out.println(out[i][j]);
+    
+    public static double[] predict(double[][] datos, double[][] params){
+        int p = datos[0].length - 1; // Número de variables
+        int N = datos.length; // Número de observaciones
+        int q = params.length; // Número de capas ocultas
+        
+        double[] beta = new double[q];
+        double[][] theta = new double[q][p];
+        double[] y = new double[N];
+        
+        for(int i = 0; i < N; i++){
+            y[i] = datos[i][p];
+        }
+        
+        for(int i_beta = 0; i_beta < q; i_beta++){
+            beta[i_beta] = params[i_beta][p];
+        }
+        
+        for(int i_theta = 0; i_theta < q; i_theta++){
+            for(int j_theta = 0; j_theta < p; j_theta++){
+                theta[i_theta][j_theta] = params[i_theta][j_theta];
             }
         }
+        
+        
+        double[] pred = new double [N];
+        
+        for(int k_dat = 0; k_dat < N; k_dat++){
+            double[] a_k = new double[q];
+            double[] z_k = new double[q];
+            
+            for(int m = 0; m < q; m++){
+                for(int ix = 0; ix < p; ix++){
+                    z_k[m] += theta[m][ix]*datos[k_dat][ix];
+                }
+                a_k[m] = Math.tanh(z_k[m]);
+            }
+            
+            double w_k = 0;
+            
+            for(int ix = 0; ix < q; ix++){
+                w_k += beta[ix]*a_k[ix];
+            }
+            
+            double p_k = Math.tanh(w_k);
+        }
+        
+        return(pred);
+    }
+    
+    
+    
+    
+    
+    public static void main(String[] args) {
+        
+        //double datos[][] = new double[][]{{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0}};
+        //double datos[][] = new double[][]{{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1}};
+        //double datos_prueba[][] = new double[][]{{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1}};
+        
+        double datos[][] = RandomArray(40, 5);
+        double datos_prueba[][] = RandomArray(40, 5);
+        
+        double parametros[][] = backpropagation(0.1, 3, datos, 100);
+        
+        double predicted[] = predict(datos_prueba, parametros);
+        
+        System.out.println();
+        for(int i = 0; i < predicted.length; i++){
+            System.out.println(predicted[i]);
+        }
+        
+        
+//        int n = parametros.length; // 2
+//        int m = parametros[0].length; // 3
+//        for(int i = 0; i < n; i++){
+//            for(int j = 0; j < m; j++){
+//                System.out.println(parametros[i][j]);
+//            }
+//        }
     }
     
 }
