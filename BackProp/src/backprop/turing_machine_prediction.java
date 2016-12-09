@@ -1,3 +1,4 @@
+package backprop;
 /*
         Calculate Circle Area using Java Example
         This Calculate Circle Area using Java Example shows how to calculate
@@ -12,13 +13,13 @@ public class turing_machine_prediction {
     public static void main(String[] args) throws FileNotFoundException  {
         try {
         	// file name to read
-            Scanner file = new Scanner(new FileReader("/Users/juanzinser/Documents/" +
-            		"ITAM MCC/Computabilidad y Complejidad/Complejidad de kolmogorov/Corridas " +
-            		"de ejemplo/Corrida 2/2_TargetTape.txt"));
-            String s = file.next();
+//            Scanner file = new Scanner(new FileReader("/Users/juanzinser/Documents/" +
+//            		"ITAM MCC/Computabilidad y Complejidad/Complejidad de kolmogorov/Corridas " +
+//            		"de ejemplo/Corrida 2/2_TargetTape.txt"));
+//            String s = file.next();
             
 
-        	TM_juan turing = new TM_juan(64,16);
+        	TM turing = new TM(64,16);
         	String turing_chain = turing.turing_chain;
         	String writer_traker = turing.run_machine_from_string_track_writes( turing_chain);
             System.out.println(writer_traker);
@@ -47,7 +48,7 @@ public class turing_machine_prediction {
 
 
 
-            file.close();
+//            file.close();
                 
             
         } catch (Exception ex) {
