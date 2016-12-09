@@ -14,6 +14,22 @@ public class TM {
     public String turing_chain;
     Random randomGenerator = new Random();
     
+    // have an optional chain that will be added given a turing machine 
+    public String create_chain_from_oracle(){
+        // check the size of the oracle and if is reduced or not
+        // actually it is not needed to have a 
+        String turing_chain_with_oracle = "";
+        String current_state;
+        int state_index;
+        for(int i=0; i<64; i++){
+            state_index = i*16;
+            current_state = turing_chain.substring(state_index,state_index+16);
+            turing_chain_with_oracle += current_state+current_state;
+
+        }
+        return turing_chain_with_oracle;
+    }
+    
     
     /*
     * Initializes the turing machine with the specifies number and states
@@ -201,7 +217,93 @@ public class TM {
         }
         return sb.toString();
     }
-    
+        
+    public String run_machine_from_string_oracle(String turing_tape) {
+        
+        // in this case the turing_tape has double length
+        // every state has 32 bits 
+        int[] cinta = new int[1024*1024];
+        // el head original es la mitad
+        int head = 1024*512;
+        // run machine
+        int min_index = head;
+        int max_index = head;
+        boolean halt = false;
+        int current_state = 0;
+        int max_iterator = 100;
+        int iterator = 0;
+        int chain_iterator_module;
+        while (!halt && iterator<=max_iterator){
+            chain_iterator_module = 32*current_state;
+            int current_value = Character.getNumericValue(
+                    turing_tape.charAt(chain_iterator_module));
+            int future_value = Character.getNumericValue(
+                    turing_tape.charAt(chain_iterator_module+1));
+            int left_right1 = Character.getNumericValue(
+                    turing_tape.charAt(chain_iterator_module+2));
+            int left_right2 = Character.getNumericValue(
+                    turing_tape.charAt(chain_iterator_module+18));
+            // integer to string suppose it goes from
+            StringBuilder sb1 = new StringBuilder();
+            sb1.append("");
+            for(int idx=3;idx<=8;idx++){
+                char number_pos=turing_tape.charAt(chain_iterator_module+idx);
+                sb1.append(Integer.toString(Character.getNumericValue(number_pos)));
+            }
+            int future_state1 = Integer.parseInt(sb1.toString(), 2);
+            
+            StringBuilder sb2 = new StringBuilder();
+            sb2.append("");
+            for(int idx=19;idx<=24;idx++){
+                char number_pos=turing_tape.charAt(chain_iterator_module+idx);
+                sb2.append(Integer.toString(Character.getNumericValue(number_pos)));
+            }
+            int future_state2 = Integer.parseInt(sb2.toString(), 2);
+            
+            if(cinta[head]==current_value){
+                cinta[head]=future_value;
+                if(left_right1==0){
+                    head-=1;
+                }else{
+                    head+=1;
+                }
+                if(future_state1==63){
+                    halt=true;
+                }else{
+                    current_state=future_state1;
+                }
+            }
+            else{
+                if(left_right2==0){
+                    head-=1;
+                }else{
+                    head+=1;
+                }
+                if(future_state2==63){
+                    halt=true;
+                }else{
+                    current_state=future_state2;
+                }
+            }
+            
+            iterator +=1;
+            if(head<min_index){
+                min_index=head;
+            }
+            if(head>max_index){
+                max_index=head;
+            }
+            
+        }
+        // cut cinta on the significant segment, only where head was eventually
+        StringBuilder sb = new StringBuilder();
+        sb.append("");
+        for(int ct=min_index; ct<=max_index;ct++){
+            sb.append(Integer.toString(cinta[ct]));
+        }
+        return sb.toString();
+    }
+
     public String run_machine_from_string_track_writes(String turing_tape) {
         
         StringBuilder chain_tracker = new StringBuilder();

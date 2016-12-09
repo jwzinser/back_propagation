@@ -19,9 +19,9 @@ public class turing_machine_prediction {
 //            String s = file.next();
             
 
-        	TM turing = new TM(64,16);
-        	String turing_chain = turing.turing_chain;
-        	String writer_traker = turing.run_machine_from_string_track_writes( turing_chain);
+            TM turing = new TM(64,16);
+            String turing_chain = turing.turing_chain;
+            String writer_traker = turing.run_machine_from_string_track_writes( turing_chain);
             System.out.println(writer_traker);
             
             // generate the tables to train the neural network
@@ -32,19 +32,22 @@ public class turing_machine_prediction {
 
             for (int i = n_lag; i <(writer_traker.length()-1); ++i){
                 for (int j = (n_lag); j >= 0; --j){
-                    System.out.println(i);
-                    System.out.println(j);
-
 	            	lag_matrix[i-n_lag][j] = Character.getNumericValue(writer_traker.charAt(i-j));
                 }
             }
 
             
-            
-            // generate train the oracle
+           
+            //  train the oracle
             
             
             // generate the new turing machine based on the oracle
+            // add to the previous turing machine the oracle factor
+            String turing_oracle_machine = turing.create_chain_from_oracle();
+            System.out.println(turing_oracle_machine.length());
+            System.out.println(turing_oracle_machine);
+            String resulting_tape = turing.run_machine_from_string_oracle(turing_oracle_machine);
+            System.out.println(resulting_tape);
 
 
 
