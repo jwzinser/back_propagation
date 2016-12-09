@@ -83,50 +83,34 @@ public class BackProp {
                     a_k[m] = Math.tanh(z_k[m]);
                 }
                 
+                double w_k = 0;
                 
-//                double norma_ak = dotProduct(a_k, a_k);
-//                System.out.print("norma_ak: ");
-//                System.out.println(norma_ak);
-
-double w_k = 0;
-
-for(int ix = 0; ix < q; ix++){
-    w_k += beta[ix]*a_k[ix];
-}
-
-//                System.out.print("w_k: ");
-//                System.out.println(w_k);
-
-double p_k = Math.tanh(w_k);
-
-//                System.out.print("p_k: ");
-//                System.out.println(p_k);
-
-double norma_parciales_beta = 0;
-for(int m = 0; m < q; m++){
-    double prod = -(y[k_dat] - p_k)*(1 - w_k*w_k)*a_k[m];
-    parciales_beta[m] += prod/N;
-    norma_parciales_beta += Math.pow(parciales_beta[m], 2);
-    
-}
-
-//                System.out.print("Norma parciales beta: ");
-//                System.out.println(norma_parciales_beta);
-
-for(int m = 0; m < q; m++){
-    for(int n = 0; n < p; n++){
-        parciales_theta[m][n] += -(2/N)*(y[k_dat] - p_k)*(1 - w_k*w_k)*beta[m]*(1-z_k[m]*z_k[m])*datos[k_dat][n];
-    }
-}
-pred[k_dat] = p_k;
-
+                for(int ix = 0; ix < q; ix++){
+                    w_k += beta[ix]*a_k[ix];
+                }
+                
+                
+                double p_k = Math.tanh(w_k);
+                
+                for(int m = 0; m < q; m++){
+                    double prod = -(y[k_dat] - p_k)*(1 - w_k*w_k)*a_k[m];
+                    parciales_beta[m] += prod/N;
+                    
+                }
+                
+                for(int m = 0; m < q; m++){
+                    for(int n = 0; n < p; n++){
+                        double prod = - (y[k_dat] - p_k)*(1 - w_k*w_k)*beta[m]*(1-z_k[m]*z_k[m])*datos[k_dat][n];
+                        parciales_theta[m][n] += prod/N;
+                    }
+                }
+                pred[k_dat] = p_k;
+                
             }
             
             double suma_errores = 0;
-            double norma_pred = 0;
             for(int i = 0; i < N; i++){
                 suma_errores += Math.pow((pred[i] - y[i]), 2);
-                norma_pred += pred[i]*pred[i];
             }
             
             for(int m = 0; m < q; m++){
@@ -140,8 +124,6 @@ pred[k_dat] = p_k;
             System.out.println(iter);
             System.out.print("suma errores al cuadrado: ");
             System.out.println(suma_errores);
-//            System.out.print("norma pred: ");
-//            System.out.println(norma_pred);
             System.out.println();
         }
         
@@ -200,6 +182,7 @@ pred[k_dat] = p_k;
             }
             
             double p_k = Math.tanh(w_k);
+            pred[k_dat] = p_k;
         }
         
         return(pred);
@@ -212,13 +195,15 @@ pred[k_dat] = p_k;
     public static void main(String[] args) {
         
         //double datos[][] = new double[][]{{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0}};
-        //double datos[][] = new double[][]{{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1}};
-        //double datos_prueba[][] = new double[][]{{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1}};
+        //double datos_prueba[][] = new double[][]{{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0},{0,1,1},{0,0,0},{1,1,0}};
         
-        double datos[][] = RandomArray(40, 5);
-        double datos_prueba[][] = RandomArray(40, 5);
+        double datos[][] = new double[][]{{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1}};
+        double datos_prueba[][] = new double[][]{{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1},{-1,1,1},{-1,-1,-1},{1,1,-1}};
         
-        double parametros[][] = backpropagation(0.1, 3, datos, 100);
+//        double datos[][] = RandomArray(40, 5);
+//        double datos_prueba[][] = RandomArray(40, 5);
+        
+        double parametros[][] = backpropagation(0.001, 3, datos, 100);
         
         double predicted[] = predict(datos_prueba, parametros);
         
