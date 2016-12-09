@@ -142,7 +142,7 @@ pred[k_dat] = p_k;
             System.out.println(suma_errores);
 //            System.out.print("norma pred: ");
 //            System.out.println(norma_pred);
-System.out.println();
+            System.out.println();
         }
         
         for(int m = 0; m < q; m++){

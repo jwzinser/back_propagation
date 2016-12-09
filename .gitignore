@@ -1,0 +1,6 @@
+BackProp/build/*
+BackProp/build.xml
+BackProp/manifest.mf
+BackProp/nbproject/*
+BackProp/test/*
+
